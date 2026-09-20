@@ -1,11 +1,22 @@
 import { X } from "lucide-react";
 import { categoryMeta } from "../utils/constants";
 
+const BREAKDOWN_LABELS = {
+  temporal: "Time",
+  location: "Location",
+  keyword: "Keyword",
+  tag: "Tag",
+  sameDay: "Weekday",
+};
+
 export default function ConnectionExplainer({ connection, receiptsById, onClose, onOpenReceipt }) {
   if (!connection) return null;
   const source = receiptsById.get(connection.sourceId);
   const target = receiptsById.get(connection.targetId);
   if (!source || !target) return null;
+
+  const scorePercent = Math.round((connection.score || 0) * 100);
+  const breakdownEntries = Object.entries(connection.breakdown || {}).filter(([, value]) => Number(value) > 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Why are these connected?">
@@ -31,8 +42,32 @@ export default function ConnectionExplainer({ connection, receiptsById, onClose,
         </div>
 
         <div className="bg-dusk/5 border border-dusk/30 rounded p-3">
-          <div className="font-mono text-[11px] text-dusk uppercase tracking-widest mb-1">Connection score: {connection.score}</div>
-          <ul className="space-y-1.5 mt-2">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="font-mono text-[11px] text-dusk uppercase tracking-widest">Connection strength</div>
+            <div className="font-mono text-[11px] text-ink/70">{scorePercent}%</div>
+          </div>
+          <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-ink/10">
+            <div className="h-full rounded-full bg-rust transition-all" style={{ width: `${scorePercent}%` }} />
+          </div>
+
+          <div className="space-y-2">
+            {breakdownEntries.map(([key, value]) => {
+              const percent = Math.round(Number(value) * 100);
+              return (
+                <div key={key} className="space-y-1">
+                  <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-ink/65">
+                    <span>{BREAKDOWN_LABELS[key] || key}</span>
+                    <span>{percent}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
+                    <div className="h-full rounded-full bg-ink/70" style={{ width: `${percent}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <ul className="space-y-1.5 mt-4">
             {connection.reasons.map((reason, i) => (
               <li key={i} className="text-sm text-ink/80 flex items-start gap-2">
                 <span className="text-rust mt-0.5">•</span> {reason}

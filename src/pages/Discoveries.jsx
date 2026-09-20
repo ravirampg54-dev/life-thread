@@ -2,11 +2,12 @@ import { useState } from "react";
 import DiscoveryCard from "../components/DiscoveryCard";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
+import { useReceiptSelection } from "../hooks/useReceiptSelection";
 
 export default function Discoveries({ data }) {
   const { discoveries, connections, receiptsById } = data;
   const [activeDiscovery, setActiveDiscovery] = useState(null);
-  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection();
 
   return (
     <div className="p-5 md:p-8 max-w-4xl mx-auto">
@@ -15,11 +16,18 @@ export default function Discoveries({ data }) {
         <p className="text-ink/60 text-sm mt-1">Patterns detected directly from the data — never a claim about who you are.</p>
       </header>
 
-      <div className="space-y-4">
-        {discoveries.map((d) => (
-          <DiscoveryCard key={d.id} discovery={d} onShowEvidence={setActiveDiscovery} />
-        ))}
-      </div>
+      {discoveries.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-ink/20 bg-receipt p-8 text-center text-sm text-ink/60">
+          <p className="font-serif text-lg text-ink">No discoveries yet.</p>
+          <p className="mt-2">Patterns become visible as more life moments accumulate.</p>
+        </div>
+      ) : (
+        <div className="space-y-4 transition-all duration-200">
+          {discoveries.map((d) => (
+            <DiscoveryCard key={d.id} discovery={d} onShowEvidence={setActiveDiscovery} />
+          ))}
+        </div>
+      )}
 
       {activeDiscovery && (
         <section className="mt-8 animate-fadein">
@@ -31,7 +39,7 @@ export default function Discoveries({ data }) {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {activeDiscovery.evidence.map((r) => (
-              <ReceiptCard key={r.id} receipt={r} onClick={setSelectedReceipt} />
+              <ReceiptCard key={r.id} receipt={r} onClick={openReceipt} />
             ))}
           </div>
         </section>
@@ -39,8 +47,8 @@ export default function Discoveries({ data }) {
 
       <ReceiptDrawer
         receipt={selectedReceipt}
-        onClose={() => setSelectedReceipt(null)}
-        onSelect={setSelectedReceipt}
+        onClose={closeReceipt}
+        onSelect={openReceipt}
         connections={connections}
         receiptsById={receiptsById}
       />

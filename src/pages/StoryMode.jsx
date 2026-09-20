@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Pause, Play, X } from "lucide-react";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
+import { useReceiptSelection } from "../hooks/useReceiptSelection";
 
 export default function StoryMode({ data }) {
   const navigate = useNavigate();
   const { story, receiptsById, connections } = data;
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection();
 
   const scene = story[index];
 
@@ -54,7 +55,7 @@ export default function StoryMode({ data }) {
           <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-3 w-full animate-fadein">
             {evidenceReceipts.map((r) => (
               <div key={r.id} className="text-ink">
-                <ReceiptCard receipt={r} onClick={setSelectedReceipt} compact />
+                <ReceiptCard receipt={r} onClick={openReceipt} compact />
               </div>
             ))}
           </div>
@@ -78,8 +79,8 @@ export default function StoryMode({ data }) {
 
       <ReceiptDrawer
         receipt={selectedReceipt}
-        onClose={() => setSelectedReceipt(null)}
-        onSelect={setSelectedReceipt}
+        onClose={closeReceipt}
+        onSelect={openReceipt}
         connections={connections}
         receiptsById={receiptsById}
       />

@@ -22,14 +22,14 @@ export default function ReceiptDrawer({ receipt, onClose, onSelect, connections,
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label={`Details for ${receipt.title}`}>
-      <div className="absolute inset-0 bg-ink/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-md h-full bg-paper border-l-2 border-ink overflow-y-auto animate-fadein">
-        <div className="sticky top-0 bg-paper border-b border-ink/20 p-4 flex items-center justify-between z-10">
+      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div className="relative h-full w-full max-w-md overflow-y-auto border-l border-white/10 bg-slate-950 animate-fadein">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-slate-950/90 p-4 backdrop-blur-xl">
           <CategoryBadge category={receipt.category} />
           <button
             ref={closeRef}
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-rust"
+            className="rounded-full p-1.5 text-slate-200 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-violet-400"
             aria-label="Close details panel"
           >
             <X size={18} />
@@ -37,25 +37,25 @@ export default function ReceiptDrawer({ receipt, onClose, onSelect, connections,
         </div>
 
         <div className="p-5">
-          <h2 className="font-serif text-2xl text-ink leading-tight">{receipt.title}</h2>
-          {receipt.subtitle && <p className="text-ink/60 font-mono text-sm mt-1">{receipt.subtitle}</p>}
+          <h2 className="font-serif text-2xl leading-tight text-white">{receipt.title}</h2>
+          {receipt.subtitle && <p className="mt-1 font-mono text-sm text-slate-400">{receipt.subtitle}</p>}
 
-          <dl className="mt-4 space-y-2 font-mono text-sm border-t border-dashed border-ink/25 pt-3">
-            <div className="flex justify-between"><dt className="text-ink/50">Date</dt><dd>{formatDate(receipt.date)}</dd></div>
-            <div className="flex justify-between"><dt className="text-ink/50">Time</dt><dd>{formatTime(receipt.time)}</dd></div>
-            {receipt.location && <div className="flex justify-between"><dt className="text-ink/50">Location</dt><dd>{receipt.location}</dd></div>}
+          <dl className="mt-4 space-y-3 border-t border-dashed border-white/10 pt-3 font-mono text-sm">
+            <div className="flex justify-between"><dt className="text-slate-400">Date</dt><dd className="text-slate-200">{formatDate(receipt.date)}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-400">Time</dt><dd className="text-slate-200">{formatTime(receipt.time)}</dd></div>
+            {receipt.location && <div className="flex justify-between"><dt className="text-slate-400">Location</dt><dd className="text-slate-200">{receipt.location}</dd></div>}
           </dl>
 
           {receipt.description && (
-            <p className="mt-4 text-ink/80 text-sm leading-relaxed font-serif italic border-l-2 border-gold pl-3">
-              "{receipt.description}"
+            <p className="mt-4 border-l-2 border-violet-400/60 pl-3 font-serif text-sm italic leading-relaxed text-slate-200">
+              “{receipt.description}”
             </p>
           )}
 
           {receipt.tags?.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {receipt.tags.map((t) => (
-                <span key={t} className="text-[10px] font-mono uppercase tracking-wide bg-ink/5 border border-ink/15 rounded-full px-2 py-0.5">
+                <span key={t} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-300">
                   #{t}
                 </span>
               ))}
@@ -63,25 +63,24 @@ export default function ReceiptDrawer({ receipt, onClose, onSelect, connections,
           )}
 
           {topReason && (
-            <div className="mt-6 bg-dusk/5 border border-dusk/30 rounded p-3">
-              <h3 className="font-mono text-[11px] uppercase tracking-widest text-dusk mb-1.5">Why this matters</h3>
-              <p className="text-sm text-ink/80">
-                This {receipt.category} is connected to{" "}
-                <span className="font-semibold">"{topReason.receipt?.title}"</span> because {topReason.conn.reasons.join("; ").toLowerCase()}.
+            <div className="mt-6 rounded-xl border border-violet-400/30 bg-violet-500/10 p-3">
+              <h3 className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.24em] text-violet-200">Why this matters</h3>
+              <p className="text-sm leading-6 text-slate-200">
+                This {receipt.category} is connected to <span className="font-semibold text-white">“{topReason.receipt?.title}”</span> because {topReason.conn.reasons.join("; ").toLowerCase()}.
               </p>
             </div>
           )}
 
           <div className="mt-6">
-            <h3 className="font-mono text-[11px] uppercase tracking-widest text-ink/60 mb-2">
+            <h3 className="mb-2 font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
               Related moments ({related.length})
             </h3>
-            {related.length === 0 && <p className="text-sm text-ink/50 italic">No strong data-based connections found for this receipt.</p>}
+            {related.length === 0 && <p className="text-sm text-slate-400 italic">No strong data-based connections found for this receipt.</p>}
             <div className="space-y-2">
               {related.map(({ receipt: r, conn }) => (
                 <div key={r.id}>
                   <ReceiptCard receipt={r} onClick={onSelect} compact connectionCount={null} />
-                  <p className="text-[11px] text-ink/50 font-mono mt-1 pl-1">score {conn.score} · {conn.reasons[0]}</p>
+                  <p className="mt-1 pl-1 font-mono text-[11px] text-slate-400">score {conn.score} · {conn.reasons[0]}</p>
                 </div>
               ))}
             </div>

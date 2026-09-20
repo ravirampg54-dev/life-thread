@@ -12,12 +12,12 @@ export default function CategoryChart({ data, height = 220 }) {
             type="category"
             width={110}
             tickFormatter={(c) => categoryMeta(c).label}
-            tick={{ fontSize: 11, fontFamily: "monospace" }}
+            tick={{ fontSize: 11, fontFamily: "monospace", fill: "#9aa8c7" }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
-            contentStyle={{ background: "#faf6ec", border: "1px solid #0b0a08", borderRadius: 4, fontFamily: "monospace", fontSize: 12 }}
+            contentStyle={{ background: "#0f172a", border: "1px solid rgba(148,163,184,0.18)", borderRadius: 12, fontFamily: "monospace", fontSize: 12, color: "#edf2ff" }}
             formatter={(value, _name, item) => [value, categoryMeta(item.payload.category).label]}
           />
           <Bar dataKey="count" radius={[0, 4, 4, 0]}>

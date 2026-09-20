@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search as SearchIcon } from "lucide-react";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
+import { useReceiptSelection } from "../hooks/useReceiptSelection";
 import { CATEGORY_ORDER, categoryMeta } from "../utils/constants";
 import { toTimestamp } from "../utils/dateUtils";
 
@@ -20,15 +21,13 @@ export default function Explorer({ data, initialReceipt, onConsumeInitial }) {
   const [connectedOnly, setConnectedOnly] = useState(false);
   const [chapterFilter, setChapterFilter] = useState("all");
   const [sort, setSort] = useState("chrono");
-  const [selectedReceipt, setSelectedReceipt] = useState(initialReceipt || null);
+  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection(initialReceipt);
 
   useEffect(() => {
-    if (initialReceipt) {
-      setSelectedReceipt(initialReceipt);
-      if (onConsumeInitial) onConsumeInitial();
+    if (initialReceipt && onConsumeInitial) {
+      onConsumeInitial();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialReceipt]);
+  }, [initialReceipt, onConsumeInitial]);
 
   const results = useMemo(() => {
     let list = receipts.filter((r) => {
@@ -131,16 +130,23 @@ export default function Explorer({ data, initialReceipt, onConsumeInitial }) {
 
       <p className="font-mono text-xs text-ink/50 mb-3">{results.length} result{results.length !== 1 ? "s" : ""}</p>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {results.map((r) => (
-          <ReceiptCard key={r.id} receipt={r} onClick={setSelectedReceipt} connectionCount={connectionsByReceipt.get(r.id)?.length || 0} />
-        ))}
-      </div>
+      {results.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-ink/20 bg-receipt p-8 text-center text-sm text-ink/60">
+          <p className="font-serif text-lg text-ink">No moments found.</p>
+          <p className="mt-2">Try another date, location, or keyword.</p>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 transition-all duration-200">
+          {results.map((r) => (
+            <ReceiptCard key={r.id} receipt={r} onClick={openReceipt} connectionCount={connectionsByReceipt.get(r.id)?.length || 0} />
+          ))}
+        </div>
+      )}
 
       <ReceiptDrawer
         receipt={selectedReceipt}
-        onClose={() => setSelectedReceipt(null)}
-        onSelect={setSelectedReceipt}
+        onClose={closeReceipt}
+        onSelect={openReceipt}
         connections={connections}
         receiptsById={receiptsById}
       />

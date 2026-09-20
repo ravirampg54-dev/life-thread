@@ -21,49 +21,62 @@ export default function Overview({ data }) {
   const category = categoryDistribution(receipts);
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <header className="mb-6">
-        <h1 className="font-serif text-3xl text-ink">Your Digital Journey</h1>
-        <p className="text-ink/60 text-sm mt-1 font-mono">
-          {formatDate(span.start)} — {formatDate(span.end)}
-        </p>
-      </header>
+    <div className="page-shell px-4 py-6 md:px-8 md:py-8">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="eyebrow">Your digital journey</div>
+            <h1 className="section-title mt-3 text-3xl md:text-5xl">Overview</h1>
+            <p className="mt-2 font-mono text-xs uppercase tracking-[0.2em] text-slate-400">
+              {formatDate(span.start)} — {formatDate(span.end)}
+            </p>
+          </div>
 
-      <StatsPanel stats={stats} />
+          <button onClick={() => navigate("/explorer")} className="ghost-button md:w-auto">
+            Open archive
+          </button>
+        </header>
 
-      <section className="mt-8 bg-receipt border border-ink/15 rounded-lg p-5">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-ink/60 mb-3">Activity by weekday</h2>
-        <ActivityChart data={weekday} dataKeyX="day" dataKeyY="count" color="#c1502e" />
-      </section>
+        <StatsPanel stats={stats} />
 
-      <section className="mt-6 bg-receipt border border-ink/15 rounded-lg p-5">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-ink/60 mb-3">Moments by category</h2>
-        <CategoryChart data={category} />
-      </section>
+        <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          <section className="surface rounded-[1.5rem] p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="eyebrow">Activity by weekday</h2>
+              <span className="glass-chip">rhythm</span>
+            </div>
+            <ActivityChart data={weekday} dataKeyX="day" dataKeyY="count" color="#8b5cf6" />
+          </section>
 
-      <section className="mt-8 grid md:grid-cols-3 gap-4">
-        <button
-          onClick={() => navigate("/discoveries")}
-          className="text-left bg-dusk/10 border border-dusk/30 rounded-lg p-5 hover:bg-dusk/15 transition-colors focus:outline-none focus:ring-2 focus:ring-rust"
-        >
-          <h3 className="font-serif text-lg">See what stands out →</h3>
-          <p className="text-sm text-ink/60 mt-1">Automatically detected, evidence-based discoveries.</p>
-        </button>
-        <button
-          onClick={() => navigate("/threads")}
-          className="text-left bg-rust/10 border border-rust/30 rounded-lg p-5 hover:bg-rust/15 transition-colors focus:outline-none focus:ring-2 focus:ring-rust"
-        >
-          <h3 className="font-serif text-lg">Follow a thread →</h3>
-          <p className="text-sm text-ink/60 mt-1">Recurring chains across music, places, and more.</p>
-        </button>
-        <button
-          onClick={() => navigate("/story")}
-          className="text-left bg-gold/10 border border-gold/30 rounded-lg p-5 hover:bg-gold/15 transition-colors focus:outline-none focus:ring-2 focus:ring-rust"
-        >
-          <h3 className="font-serif text-lg">Play your story →</h3>
-          <p className="text-sm text-ink/60 mt-1">A narrative built entirely from your data.</p>
-        </button>
-      </section>
+          <section className="surface rounded-[1.5rem] p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="eyebrow">Moments by category</h2>
+              <span className="glass-chip">signals</span>
+            </div>
+            <CategoryChart data={category} />
+          </section>
+        </div>
+
+        <section className="mt-8 grid gap-4 md:grid-cols-3">
+          <button onClick={() => navigate("/discoveries")} className="story-card">
+            <div className="eyebrow mb-3">Discoveries</div>
+            <h3 className="font-serif text-2xl text-white">See what stands out</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Automatically detected, evidence-based patterns hidden in the archive.</p>
+          </button>
+
+          <button onClick={() => navigate("/threads")} className="story-card">
+            <div className="eyebrow mb-3">Threads</div>
+            <h3 className="font-serif text-2xl text-white">Follow a thread</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-300">Recurring motifs across music, places, routines, and travel.</p>
+          </button>
+
+          <button onClick={() => navigate("/story")} className="story-card">
+            <div className="eyebrow mb-3">Story mode</div>
+            <h3 className="font-serif text-2xl text-white">Play your story</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-300">A narrative built entirely from your data, not from guesswork.</p>
+          </button>
+        </section>
+      </div>
     </div>
   );
 }

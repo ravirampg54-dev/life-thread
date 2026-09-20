@@ -40,7 +40,7 @@ export default function SearchCommand({ receipts, onSelectReceipt }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-30 bg-ink text-paper rounded-full p-3 shadow-lg hover:scale-105 transition-transform focus:outline-none focus:ring-2 focus:ring-rust"
+        className="fixed bottom-24 right-4 z-30 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 p-3 text-white shadow-[0_12px_28px_rgba(139,92,246,0.35)] transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-violet-400 md:bottom-6 md:right-6"
         aria-label="Open search (Ctrl+K or /)"
         title="Search (Ctrl+K or /)"
       >
@@ -51,19 +51,19 @@ export default function SearchCommand({ receipts, onSelectReceipt }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4" role="dialog" aria-modal="true" aria-label="Search">
-      <div className="absolute inset-0 bg-ink/50" onClick={() => setOpen(false)} aria-hidden="true" />
-      <div className="relative w-full max-w-lg bg-receipt border-2 border-ink rounded-lg shadow-2xl overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-ink/20 px-4 py-3">
-          <Search size={16} className="text-ink/50" aria-hidden="true" />
+      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setOpen(false)} aria-hidden="true" />
+      <div className="relative w-full max-w-lg overflow-hidden rounded-[1.4rem] border border-white/10 bg-slate-950 shadow-[0_30px_60px_rgba(2,6,23,0.7)]">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+          <Search size={16} className="text-slate-400" aria-hidden="true" />
           <input
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search moments — coffee, Friday, midnight..."
-            className="flex-1 bg-transparent outline-none font-mono text-sm placeholder:text-ink/40"
+            className="flex-1 bg-transparent font-mono text-sm text-white outline-none placeholder:text-slate-400"
             aria-label="Search receipts"
           />
-          <kbd className="text-[10px] font-mono text-ink/40 border border-ink/20 rounded px-1.5 py-0.5">ESC</kbd>
+          <kbd className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">ESC</kbd>
         </div>
         <ul className="max-h-80 overflow-y-auto">
           {results.map((r) => {
@@ -71,7 +71,7 @@ export default function SearchCommand({ receipts, onSelectReceipt }) {
             return (
               <li key={r.id}>
                 <button
-                  className="w-full text-left px-4 py-2.5 hover:bg-ink/5 flex items-center gap-3 focus:outline-none focus:bg-ink/10"
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5 focus:bg-white/5 focus:outline-none"
                   onClick={() => {
                     setOpen(false);
                     setQuery("");
@@ -80,16 +80,16 @@ export default function SearchCommand({ receipts, onSelectReceipt }) {
                   }}
                 >
                   <span aria-hidden="true">{meta.emoji}</span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-sm truncate">{r.title}</span>
-                    <span className="block text-[11px] text-ink/50 font-mono">{meta.label} · {formatDate(r.date)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm text-white">{r.title}</span>
+                    <span className="mt-0.5 block font-mono text-[11px] text-slate-400">{meta.label} · {formatDate(r.date)}</span>
                   </span>
                 </button>
               </li>
             );
           })}
           {query && results.length === 0 && (
-            <li className="px-4 py-6 text-center text-sm text-ink/50">No receipts match "{query}"</li>
+            <li className="px-4 py-6 text-center text-sm text-slate-400">No receipts match "{query}"</li>
           )}
         </ul>
       </div>

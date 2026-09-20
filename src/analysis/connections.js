@@ -1,7 +1,10 @@
-// The Connection Engine.
-// Every connection between two receipts is derived from real fields on the
-// records (time, location, tags, keywords) and always carries human-readable
-// reasons. No relationship is fabricated or decorative.
+/**
+ * Connection analysis for the LIFE//THREADS graph.
+ *
+ * The engine compares real receipt fields (time, location, keywords, tags and
+ * weekday) and converts those matches into deterministic, evidential links.
+ * Only relationships with a meaningful score are retained.
+ */
 
 import { minutesBetween, isSameDay } from "../utils/dateUtils";
 
@@ -40,16 +43,28 @@ const TEMPORAL_WINDOW_MIN = 90; // within 90 minutes counts as temporally close
  * Compute a deterministic connection between two receipts.
  * Returns null if no meaningful relationship exists (score below threshold).
  */
+/**
+ * Calculates the deterministic connection score between two receipts.
+ *
+ * @param {Receipt} a
+ * @param {Receipt} b
+ * @returns {Connection | null}
+ */
 export function computeConnection(a, b) {
   if (a.id === b.id) return null;
   const reasons = [];
-  let score = 0;
+  const breakdown = {
+    temporal: 0,
+    location: 0,
+    keyword: 0,
+    tag: 0,
+    sameDay: 0,
+  };
 
-  // 1. Temporal proximity
   const mins = minutesBetween(a, b);
   if (mins <= TEMPORAL_WINDOW_MIN) {
     const temporalScore = WEIGHTS.temporal * (1 - mins / TEMPORAL_WINDOW_MIN);
-    score += temporalScore;
+    breakdown.temporal = Number(temporalScore.toFixed(4));
     const roundedMins = Math.round(mins);
     reasons.push(
       roundedMins <= 1
@@ -58,25 +73,22 @@ export function computeConnection(a, b) {
     );
   }
 
-  // 2. Same location
   if (a.location && b.location && a.location === b.location) {
-    score += WEIGHTS.location;
+    breakdown.location = WEIGHTS.location;
     reasons.push(`Both records share the same location (${a.location})`);
   }
 
-  // 3. Keyword overlap (title/subtitle/description)
   const kwA = keywordsOf(a);
   const kwB = keywordsOf(b);
   const kwOverlap = overlap(kwA, kwB);
   if (kwOverlap.count >= 2) {
-    score += WEIGHTS.keyword * Math.min(1, kwOverlap.count / 4);
+    breakdown.keyword = Number((WEIGHTS.keyword * Math.min(1, kwOverlap.count / 4)).toFixed(4));
     reasons.push(`These receipts share ${kwOverlap.count} common keywords (${kwOverlap.shared.slice(0, 3).join(", ")})`);
   }
 
-  // 4. Shared tags
   const tagOverlap = overlap(new Set(a.tags || []), new Set(b.tags || []));
   if (tagOverlap.count >= 1) {
-    score += WEIGHTS.tag * Math.min(1, tagOverlap.count / 3);
+    breakdown.tag = Number((WEIGHTS.tag * Math.min(1, tagOverlap.count / 3)).toFixed(4));
     reasons.push(
       tagOverlap.count === 1
         ? `Both are tagged "${tagOverlap.shared[0]}"`
@@ -84,19 +96,20 @@ export function computeConnection(a, b) {
     );
   }
 
-  // 5. Same calendar day
   if (isSameDay(a, b) && mins > TEMPORAL_WINDOW_MIN) {
-    score += WEIGHTS.sameDay;
+    breakdown.sameDay = WEIGHTS.sameDay;
     reasons.push("Happened on the same day");
   }
 
+  const score = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
   if (score <= 0 || reasons.length === 0) return null;
 
   return {
     sourceId: a.id,
     targetId: b.id,
-    score: Math.round(Math.min(score, 1) * 100) / 100,
+    score: Number(Math.min(score, 1).toFixed(2)),
     reasons,
+    breakdown,
   };
 }
 
@@ -107,6 +120,12 @@ const MAX_CANDIDATES_PER_RECEIPT = 40;
  * Build the connection graph using cheap indexes to avoid comparing unrelated
  * records. The scoring function remains unchanged; only plausible pairs are
  * sent to it (same day, location, or tag).
+ */
+/**
+ * Builds the complete connection graph for the provided receipt dataset.
+ *
+ * @param {Receipt[]} allReceipts
+ * @returns {Connection[]}
  */
 export function buildConnections(allReceipts) {
   const connections = [];
@@ -141,7 +160,12 @@ export function buildConnections(allReceipts) {
   return connections.sort((a, b) => b.score - a.score);
 }
 
-/** Index connections by receipt id for O(1) lookup of a receipt's connections. */
+/**
+ * Indexes connections by receipt id for O(1) lookup.
+ *
+ * @param {Connection[]} connections
+ * @returns {Map<string, Connection[]>}
+ */
 export function indexConnectionsByReceipt(connections) {
   const map = new Map();
   const add = (id, conn) => {
@@ -155,6 +179,14 @@ export function indexConnectionsByReceipt(connections) {
   return map;
 }
 
+/**
+ * Returns the connected receipts for a given receipt, ordered by strongest score.
+ *
+ * @param {string} receiptId
+ * @param {Connection[]} connections
+ * @param {Map<string, Receipt>} receiptsById
+ * @returns {{ receipt: Receipt, conn: Connection }[]}
+ */
 export function getConnectedReceipts(receiptId, connections, receiptsById) {
   const results = [];
   for (const c of connections) {

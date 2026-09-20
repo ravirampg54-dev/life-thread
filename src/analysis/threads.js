@@ -1,7 +1,10 @@
-// Threads: a Thread is a recurring relationship pattern between different
-// receipt categories, detected by finding repeated category sequences that
-// share a location and/or tag and occur close together in time on multiple
-// distinct occasions.
+/**
+ * Thread detection for recurring behavior patterns in the dataset.
+ *
+ * Each rule searches for repeated category sequences that recur across multiple
+ * occasions, and it only reports a thread when there is evidence from several
+ * separate receipt clusters.
+ */
 
 import { toTimestamp } from "../utils/dateUtils";
 
@@ -38,6 +41,12 @@ const THREAD_DEFINITIONS = [
   },
 ];
 
+/**
+ * Detects repeated behavior threads across the receipt set.
+ *
+ * @param {Receipt[]} receipts
+ * @returns {Thread[]}
+ */
 export function detectThreads(receipts) {
   const threads = [];
   for (const def of THREAD_DEFINITIONS) {

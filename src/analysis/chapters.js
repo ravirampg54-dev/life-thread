@@ -1,5 +1,10 @@
-// Chapters: contiguous, thematically coherent periods detected from the data
-// itself (dominant category/tag clusters within a date range), not hardcoded.
+/**
+ * Chapter detection for the LIFE//THREADS archive.
+ *
+ * Rules scan the actual receipt set for repeated clusters in time, location,
+ * category and tags. The result is a list of evidence-backed life phases rather
+ * than a static hardcoded narrative.
+ */
 
 import { toTimestamp, formatDate, isLateNight } from "../utils/dateUtils";
 
@@ -69,6 +74,12 @@ const CHAPTER_RULES = [
   },
 ];
 
+/**
+ * Detects chapter-like clusters in the receipt dataset.
+ *
+ * @param {Receipt[]} receipts
+ * @returns {Chapter[]} chapters
+ */
 export function detectChapters(receipts) {
   const chapters = [];
   for (const rule of CHAPTER_RULES) {

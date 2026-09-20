@@ -1,9 +1,20 @@
-// Discoveries: automatic, evidence-based pattern detection.
-// Rule: every discovery states an observable fact with supporting receipts.
-// No claims about the person's personality or psychology are ever made.
+/**
+ * Discovery and distribution analysis for the LIFE//THREADS archive.
+ *
+ * Every discovery is backed by actual receipts and is framed as evidence-based
+ * data points rather than personality inference.
+ */
 
 import { getWeekday, WEEKDAY_NAMES, isLateNight, getHour, toTimestamp } from "../utils/dateUtils";
 
+/**
+ * Finds evidence-backed discoveries such as dominant weekdays, repeated
+ * locations, late-night clusters and recurring activity sequences.
+ *
+ * @param {Receipt[]} receipts
+ * @param {Connection[]} connections
+ * @returns {Discovery[]}
+ */
 export function detectDiscoveries(receipts, connections) {
   const discoveries = [];
 
@@ -138,6 +149,12 @@ export function detectDiscoveries(receipts, connections) {
 }
 
 // Weekday activity distribution — used by chart components.
+/**
+ * Produces a weekday distribution for charting and overview screens.
+ *
+ * @param {Receipt[]} receipts
+ * @returns {{ day: string, count: number }[]}
+ */
 export function weekdayDistribution(receipts) {
   const counts = Array.from({ length: 7 }, () => 0);
   receipts.forEach((r) => counts[getWeekday(r)]++);
@@ -145,6 +162,12 @@ export function weekdayDistribution(receipts) {
 }
 
 // Hour-of-day activity distribution.
+/**
+ * Produces an hourly activity distribution for time-based analysis views.
+ *
+ * @param {Receipt[]} receipts
+ * @returns {{ hour: number, count: number }[]}
+ */
 export function hourDistribution(receipts) {
   const counts = Array.from({ length: 24 }, () => 0);
   receipts.forEach((r) => counts[getHour(r)]++);
@@ -152,6 +175,12 @@ export function hourDistribution(receipts) {
 }
 
 // Category counts.
+/**
+ * Produces category totals for summary and chart views.
+ *
+ * @param {Receipt[]} receipts
+ * @returns {{ category: string, count: number }[]}
+ */
 export function categoryDistribution(receipts) {
   const counts = new Map();
   receipts.forEach((r) => counts.set(r.category, (counts.get(r.category) || 0) + 1));

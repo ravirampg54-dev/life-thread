@@ -1,7 +1,14 @@
-// Story Mode: turns detected chapters + threads + discoveries into an
-// ordered set of scenes. Every scene line is generated from real evidence
-// already computed elsewhere — nothing here is randomly generated text.
-
+/**
+ * Builds the narrative scenes used by Story Mode.
+ *
+ * The scenes combine existing chapter, thread and discovery evidence into a
+ * deterministic, ordered story without inventing unsupported details.
+ *
+ * @param {Chapter[]} chapters
+ * @param {Thread[]} threads
+ * @param {Discovery[]} discoveries
+ * @returns {{ id: string, heading: string, line: string, detail: string, evidence: string[] }[]}
+ */
 export function buildStory(chapters, threads, discoveries) {
   const scenes = [];
 
