@@ -1,9 +1,11 @@
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import StatsPanel from "../components/StatsPanel";
-import ActivityChart from "../charts/ActivityChart";
-import CategoryChart from "../charts/CategoryChart";
 import { weekdayDistribution, categoryDistribution } from "../analysis/patterns";
 import { formatDate } from "../utils/dateUtils";
+
+const ActivityChart = lazy(() => import("../charts/ActivityChart"));
+const CategoryChart = lazy(() => import("../charts/CategoryChart"));
 
 export default function Overview({ data }) {
   const navigate = useNavigate();
@@ -39,6 +41,7 @@ export default function Overview({ data }) {
 
         <StatsPanel stats={stats} />
 
+        <Suspense fallback={<div className="mt-8 grid gap-5 lg:grid-cols-2" aria-label="Loading charts"><div className="surface h-64 rounded-[1.5rem]" /><div className="surface h-64 rounded-[1.5rem]" /></div>}>
         <div className="mt-8 grid gap-5 lg:grid-cols-2">
           <section className="surface rounded-[1.5rem] p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
@@ -56,6 +59,7 @@ export default function Overview({ data }) {
             <CategoryChart data={category} />
           </section>
         </div>
+        </Suspense>
 
         <section className="mt-8 grid gap-4 md:grid-cols-3">
           <button onClick={() => navigate("/discoveries")} className="story-card">

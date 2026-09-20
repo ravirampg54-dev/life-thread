@@ -1,15 +1,17 @@
 import { useMemo, useState } from "react";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
+import PageHeader from "../components/PageHeader";
 import { getConnectedReceipts } from "../analysis/connections";
 import { toTimestamp } from "../utils/dateUtils";
 import { CATEGORY_ORDER, categoryMeta } from "../utils/constants";
+import { useReceiptSelection } from "../hooks";
 
 export default function Timeline({ data }) {
   const { receipts, connections, receiptsById, categories } = data;
   const [category, setCategory] = useState("all");
-  const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [highlightSet, setHighlightSet] = useState(null);
+  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection(null, connections, receiptsById);
 
   const sorted = useMemo(() => [...receipts].sort((a, b) => toTimestamp(a) - toTimestamp(b)), [receipts]);
 
@@ -29,17 +31,14 @@ export default function Timeline({ data }) {
   }, [filtered]);
 
   function handleSelect(r) {
-    setSelectedReceipt(r);
+    openReceipt(r);
     const related = getConnectedReceipts(r.id, connections, receiptsById);
     setHighlightSet(new Set([r.id, ...related.map((x) => x.receipt.id)]));
   }
 
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <header className="mb-4">
-        <h1 className="font-serif text-3xl text-ink">Timeline</h1>
-        <p className="text-ink/60 text-sm mt-1">Click a receipt to highlight everything it's connected to.</p>
-      </header>
+      <PageHeader title="Timeline" description="Click a receipt to highlight everything it's connected to." />
 
       <div className="flex flex-wrap gap-2 mb-6" role="group" aria-label="Filter by category">
         <button
@@ -55,9 +54,9 @@ export default function Timeline({ data }) {
             key={c}
             onClick={() => setCategory(c)}
             className={`font-mono text-[11px] uppercase tracking-wide rounded-full px-3 py-1 border focus:outline-none focus:ring-2 focus:ring-rust ${
-              category === c ? "text-paper border-ink" : "border-ink/20 text-ink/60 hover:border-ink"
+              category === c ? "" : "border-ink/20 text-ink/60 hover:border-ink"
             }`}
-            style={category === c ? { backgroundColor: categoryMeta(c).color } : {}}
+            style={category === c ? { borderColor: categoryMeta(c).color, color: categoryMeta(c).color, backgroundColor: `${categoryMeta(c).color}26` } : {}}
           >
             {categoryMeta(c).emoji} {categoryMeta(c).label}
           </button>
@@ -84,8 +83,8 @@ export default function Timeline({ data }) {
       <ReceiptDrawer
         receipt={selectedReceipt}
         onClose={() => {
-          setSelectedReceipt(null);
-          setHighlightSet(null);
+                closeReceipt();
+                setHighlightSet(null);
         }}
         onSelect={handleSelect}
         connections={connections}

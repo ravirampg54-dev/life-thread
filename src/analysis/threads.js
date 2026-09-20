@@ -7,6 +7,7 @@
  */
 
 import { toTimestamp } from "../utils/dateUtils";
+import { THREAD_MIN_OCCURRENCES, THREAD_MIN_RECEIPTS } from "./config";
 
 const THREAD_DEFINITIONS = [
   {
@@ -51,7 +52,7 @@ export function detectThreads(receipts) {
   const threads = [];
   for (const def of THREAD_DEFINITIONS) {
     const relevant = receipts.filter(def.filter).sort((a, b) => toTimestamp(a) - toTimestamp(b));
-    if (relevant.length < 4) continue;
+    if (relevant.length < THREAD_MIN_RECEIPTS) continue;
 
     // Group into occurrences by date to show the chain repeats across
     // distinct days, which is the evidence that it's a real recurring thread.
@@ -67,7 +68,7 @@ export function detectThreads(receipts) {
       }))
       .filter((occ) => occ.chain.length >= 2);
 
-    if (occurrences.length < 2) continue;
+    if (occurrences.length < THREAD_MIN_OCCURRENCES) continue;
 
     threads.push({
       id: def.id,

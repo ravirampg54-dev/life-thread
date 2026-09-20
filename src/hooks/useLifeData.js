@@ -1,3 +1,5 @@
+// Single client-side analysis pipeline shared by every page.
+
 import { useEffect, useMemo, useState } from "react";
 import { fallbackReceipts } from "../data/fallbackData";
 import { loadArchiveReceipts } from "../data/archiveData";
@@ -8,6 +10,11 @@ import { detectDiscoveries } from "../analysis/patterns";
 import { buildStory } from "../analysis/story";
 import { daySpan } from "../utils/dateUtils";
 
+/**
+ * Loads local archive data and derives all evidence-backed view models.
+ *
+ * @returns {object} Receipts, indexes, graph edges, detected patterns and story scenes.
+ */
 // A dedicated, isolated hook that performs the ENTIRE client-side analysis
 // pipeline exactly once (memoized) for the given dataset. This is the single
 // source of truth consumed by every page, so no page re-runs O(n^2)

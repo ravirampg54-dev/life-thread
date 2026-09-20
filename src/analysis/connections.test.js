@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeConnection, buildConnections } from "./connections";
+import { SCORE_THRESHOLD } from "./config";
 
 function makeReceipt(overrides = {}) {
   return {
@@ -132,5 +133,94 @@ describe("connection engine", () => {
       Object.values(connection.breakdown).filter((value) => value > 0).length
     );
     expect(Object.values(connection.breakdown).reduce((sum, value) => sum + value, 0)).toBeGreaterThan(0);
+  });
+
+  it("rejects a lone same-day match that stays below the score threshold", () => {
+    const a = makeReceipt({
+      id: "a",
+      title: "zzalpha",
+      date: "2025-03-10",
+      time: "08:00",
+      location: null,
+      tags: [],
+      description: "",
+    });
+    const b = makeReceipt({
+      id: "b",
+      title: "zzbeta",
+      date: "2025-03-10",
+      time: "20:00",
+      location: "Office",
+      tags: [],
+      description: "",
+    });
+
+    expect(computeConnection(a, b)).toBeNull();
+    expect(buildConnections([a, b])).toEqual([]);
+  });
+
+  it("keeps a single strong factor that clears the threshold", () => {
+    const a = makeReceipt({
+      id: "a",
+      title: "zzquorba",
+      date: "2025-03-10",
+      time: "08:00",
+      location: "Moonlight Café",
+      tags: [],
+      description: "zzaway",
+    });
+    const b = makeReceipt({
+      id: "b",
+      title: "zzplugh",
+      date: "2025-04-01",
+      time: "20:00",
+      location: "Moonlight Café",
+      tags: [],
+      description: "zzawayx",
+    });
+
+    const connection = computeConnection(a, b);
+    expect(connection).not.toBeNull();
+    expect(connection.score).toBeGreaterThanOrEqual(SCORE_THRESHOLD);
+    expect(connection.breakdown.location).toBeGreaterThan(0);
+  });
+
+  it("never emits a retained edge without reasons or a qualifying score", () => {
+    const dayA = makeReceipt({
+      id: "d-a1",
+      title: "zzday one",
+      date: "2025-01-15",
+      time: "21:30",
+      location: "Home",
+      tags: ["study", "focus", "late-night"],
+      description: "zzfirst session of the evening.",
+    });
+    const dayB = makeReceipt({
+      id: "d-b1",
+      title: "zzday two",
+      date: "2025-01-16",
+      time: "22:10",
+      location: "Home",
+      tags: ["study", "focus", "late-night"],
+      description: "zzsecond late session in a row.",
+    });
+    const other = makeReceipt({
+      id: "d-c1",
+      title: "zzother",
+      date: "2025-02-05",
+      time: "09:00",
+      location: "Work",
+      tags: ["admin"],
+      description: "zzunrelated office note",
+    });
+
+    const connections = buildConnections([dayA, dayB, other]);
+    expect(connections.length).toBeGreaterThan(0);
+    connections.forEach((connection) => {
+      expect(connection.score).toBeGreaterThanOrEqual(SCORE_THRESHOLD);
+      expect(connection.reasons.length).toBeGreaterThan(0);
+      const contributors = Object.values(connection.breakdown).filter((value) => value > 0).length;
+      expect(connection.reasons.length).toBe(contributors);
+    });
   });
 });

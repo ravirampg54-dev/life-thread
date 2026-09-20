@@ -1,16 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Pause, Play, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Pause, Play, X } from "lucide-react";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
-import { useReceiptSelection } from "../hooks/useReceiptSelection";
+import { useReceiptSelection } from "../hooks";
 
 export default function StoryMode({ data }) {
   const navigate = useNavigate();
   const { story, receiptsById, connections } = data;
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection();
+  const { openReceipt, drawerProps } = useReceiptSelection(null, connections, receiptsById);
 
   const scene = story[index];
 
@@ -37,6 +37,28 @@ export default function StoryMode({ data }) {
 
   const evidenceReceipts = (scene.evidence || []).map((id) => receiptsById.get(id)).filter(Boolean).slice(0, 6);
 
+  function exportStory() {
+    const text = story
+      .map((storyScene) => {
+        const evidenceTitles = (storyScene.evidence || [])
+          .map((id) => (receiptsById.get(id) ? `${receiptsById.get(id).title} (${id})` : id))
+          .join(", ");
+        return [
+          storyScene.heading,
+          storyScene.line,
+          storyScene.detail,
+          evidenceTitles ? `Evidence: ${evidenceTitles}` : "Evidence: none",
+        ].join("\n");
+      })
+      .join("\n\n");
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "life-threads-story.txt";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="min-h-screen bg-ink text-paper flex flex-col">
       <div className="flex items-center justify-between p-4 md:p-6">
@@ -45,7 +67,7 @@ export default function StoryMode({ data }) {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center max-w-2xl mx-auto">
-        <p key={scene.id} className="font-mono text-xs uppercase tracking-[0.3em] text-rust mb-4 animate-fadein">{scene.heading}</p>
+        <p key={scene.id} className="font-mono text-xs uppercase tracking-[0.3em] text-violet-700 mb-4 animate-fadein">{scene.heading}</p>
         <h2 className="font-serif text-3xl md:text-5xl leading-tight animate-fadein">{scene.line}</h2>
         {typeof scene.detail === "string" && (
           <p className="mt-6 text-paper/70 text-sm md:text-base leading-relaxed animate-fadein">{scene.detail}</p>
@@ -72,18 +94,15 @@ export default function StoryMode({ data }) {
         <button onClick={next} disabled={index === story.length - 1} className="p-2.5 rounded-full border border-paper/30 disabled:opacity-30 hover:bg-paper/10 focus:outline-none focus:ring-2 focus:ring-rust" aria-label="Next scene">
           <ChevronRight size={18} />
         </button>
+        <button onClick={exportStory} className="p-2.5 rounded-full border border-paper/30 hover:bg-paper/10 focus:outline-none focus:ring-2 focus:ring-rust" aria-label="Export story as text">
+          <Download size={18} />
+        </button>
         <button onClick={() => navigate("/overview")} className="ml-4 p-2.5 rounded-full border border-paper/30 hover:bg-paper/10 focus:outline-none focus:ring-2 focus:ring-rust" aria-label="Exit story mode">
           <X size={18} />
         </button>
       </div>
 
-      <ReceiptDrawer
-        receipt={selectedReceipt}
-        onClose={closeReceipt}
-        onSelect={openReceipt}
-        connections={connections}
-        receiptsById={receiptsById}
-      />
+      <ReceiptDrawer {...drawerProps} />
     </div>
   );
 }

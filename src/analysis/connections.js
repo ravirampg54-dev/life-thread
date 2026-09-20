@@ -7,6 +7,12 @@
  */
 
 import { minutesBetween, isSameDay } from "../utils/dateUtils";
+import {
+  CONNECTION_WEIGHTS,
+  MAX_CANDIDATES_PER_RECEIPT,
+  SCORE_THRESHOLD,
+  TEMPORAL_WINDOW_MIN,
+} from "./config";
 
 const STOPWORDS = new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with", "at", "this", "that"]);
 
@@ -29,26 +35,18 @@ function overlap(setA, setB) {
 }
 
 // Weights sum to 1.0 — deterministic, documented scoring formula.
-const WEIGHTS = {
-  temporal: 0.30,
-  location: 0.25,
-  keyword: 0.20,
-  tag: 0.15,
-  sameDay: 0.10,
-};
+const WEIGHTS = CONNECTION_WEIGHTS;
 
-const TEMPORAL_WINDOW_MIN = 90; // within 90 minutes counts as temporally close
-
-/**
- * Compute a deterministic connection between two receipts.
- * Returns null if no meaningful relationship exists (score below threshold).
- */
 /**
  * Calculates the deterministic connection score between two receipts.
  *
+ * Compares real receipt fields (time, location, keywords, tags and weekday)
+ * against the configured weights in `src/analysis/config.js` and returns a
+ * traceable edge object with per-factor breakdown and human-readable reasons.
+ *
  * @param {Receipt} a
  * @param {Receipt} b
- * @returns {Connection | null}
+ * @returns {Connection | null} The edge, or null when there is no relationship.
  */
 export function computeConnection(a, b) {
   if (a.id === b.id) return null;
@@ -102,7 +100,9 @@ export function computeConnection(a, b) {
   }
 
   const score = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
-  if (score <= 0 || reasons.length === 0) return null;
+  // A relationship is only an edge when it clears the configured threshold and
+  // carries at least one human-readable reason (score > 0 implies reasons exist).
+  if (score < SCORE_THRESHOLD || reasons.length === 0) return null;
 
   return {
     sourceId: a.id,
@@ -112,9 +112,6 @@ export function computeConnection(a, b) {
     breakdown,
   };
 }
-
-const SCORE_THRESHOLD = 0.18;
-const MAX_CANDIDATES_PER_RECEIPT = 40;
 
 /**
  * Build the connection graph using cheap indexes to avoid comparing unrelated
@@ -152,7 +149,7 @@ export function buildConnections(allReceipts) {
     for (const j of [...candidateIndexes].slice(0, MAX_CANDIDATES_PER_RECEIPT)) {
       if (j <= i) continue;
       const conn = computeConnection(allReceipts[i], allReceipts[j]);
-      if (conn && conn.score >= SCORE_THRESHOLD) {
+      if (conn) {
         connections.push(conn);
       }
     }

@@ -39,6 +39,9 @@ LIFE//THREADS is a client-side personal museum for digital life traces. It works
 - Story Mode: narrative scene builder in `src/analysis/story.js`
 - Receipt Drawer: detailed receipt investigation panel
 - Search Command: keyboard-triggered search with `Ctrl+K`, `Cmd+K`, and `/`
+- Responsive UI: mobile bottom navigation, wrapped filters, contained graph scrolling, and layouts tested from 375px through desktop widths
+- Accessibility: keyboard alternatives for graph data, dialog focus containment, restored focus, labels, reduced-motion support, and descriptive SVG text
+- Performance: memoized analysis and graph layout, route-based page splitting, deferred Recharts chunks, paginated Explorer, and bounded graph rendering
 
 ## Architecture
 
@@ -58,7 +61,9 @@ Interactive UI
 src/
 ├── analysis/
 │   ├── chapters.js
+│   ├── config.js
 │   ├── connections.js
+│   ├── index.js
 │   ├── patterns.js
 │   ├── story.js
 │   └── threads.js
@@ -70,6 +75,8 @@ src/
 │   ├── ChapterCard.jsx
 │   ├── ConnectionExplainer.jsx
 │   ├── DiscoveryCard.jsx
+│   ├── index.js
+│   ├── PageHeader.jsx
 │   ├── ReceiptCard.jsx
 │   ├── ReceiptDrawer.jsx
 │   ├── SearchCommand.jsx
@@ -83,6 +90,8 @@ src/
 │   ├── ConnectionGraph.jsx
 │   └── layout.js
 ├── hooks/
+│   ├── index.js
+│   ├── useDisclosure.js
 │   ├── useLifeData.js
 │   └── useReceiptSelection.js
 ├── pages/
@@ -115,7 +124,7 @@ time × 0.30
 + location × 0.25
 + keyword × 0.20
 + tag × 0.15
-+ weekday × 0.10
++ same day × 0.10
 
 The engine uses these real rules:
 
@@ -126,6 +135,8 @@ The engine uses these real rules:
 - same calendar day contributes only when the receipts are not already counted as temporally close
 
 The final value is capped at 1.0 and rounded to two decimals for the visible connection score.
+
+Only connections with a final score of at least `0.18` are treated as edges (`computeConnection` returns `null` below the threshold, so the value is enforced in exactly one place). The threshold removes incidental single-factor matches while retaining relationships with meaningful combined evidence. The configurable source of truth is `src/analysis/config.js`.
 
 ## Installation
 
@@ -151,6 +162,10 @@ npx oxlint src
 ```bash
 npm test
 ```
+
+## Original spec checklist
+
+Intro, overview, chapters, threads, connection graph, discoveries, timeline, explorer, receipt detail, life map, story mode, command search, responsive UI, accessibility, and performance are implemented as the corresponding routes/components above. Chapters, threads, discoveries, and Story Mode scenes cite receipt evidence from the local dataset; graph edges expose temporal, location, same-day, keyword, and shared-tag reasons. Story Mode also exports its current data-derived scene sequence as a local text file.
 
 ## Frontend-only guarantee
 

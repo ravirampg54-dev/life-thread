@@ -7,6 +7,7 @@
  */
 
 import { toTimestamp, formatDate, isLateNight } from "../utils/dateUtils";
+import { CHAPTER_MIN_COUNTS } from "./config";
 
 function dominant(list, keyFn, minShare = 0.3) {
   const counts = new Map();
@@ -28,7 +29,7 @@ const CHAPTER_RULES = [
     id: "midnight-phase",
     title: "THE MIDNIGHT PHASE",
     match: (r) => isLateNight(r),
-    minCount: 6,
+    minCount: CHAPTER_MIN_COUNTS.midnightPhase,
     summaryFn: (list) =>
       `${list.length} moments between 11 PM and 2 AM. Music, searches and study events repeatedly appeared during this period.`,
   },
@@ -36,7 +37,7 @@ const CHAPTER_RULES = [
     id: "cafe-thread-chapter",
     title: "THE FRIDAY CAFÉ RITUAL",
     match: (r) => r.location === "Moonlight Café",
-    minCount: 6,
+    minCount: CHAPTER_MIN_COUNTS.cafeThreadChapter,
     summaryFn: (list) =>
       `${list.length} receipts tied to Moonlight Café, almost all on Friday mornings — the same song, the same order, the same table.`,
   },
@@ -44,7 +45,7 @@ const CHAPTER_RULES = [
     id: "study-season",
     title: "THE STUDY SEASON",
     match: (r) => (r.tags || []).includes("study"),
-    minCount: 6,
+    minCount: CHAPTER_MIN_COUNTS.studySeason,
     summaryFn: (list) =>
       `${list.length} study-tagged receipts spanning searches, focus music, notes and group events.`,
   },
@@ -52,7 +53,7 @@ const CHAPTER_RULES = [
     id: "weekend-escape",
     title: "THE WEEKEND ESCAPE",
     match: (r) => (r.tags || []).includes("travel"),
-    minCount: 6,
+    minCount: CHAPTER_MIN_COUNTS.weekendEscape,
     summaryFn: (list) =>
       `${list.length} receipts around travel planning and trips — searches, bookings, and the moments during the getaways themselves.`,
   },
@@ -60,7 +61,7 @@ const CHAPTER_RULES = [
     id: "creative-streak",
     title: "THE CREATIVE STREAK",
     match: (r) => (r.tags || []).includes("creative"),
-    minCount: 5,
+    minCount: CHAPTER_MIN_COUNTS.creativeStreak,
     summaryFn: (list) =>
       `${list.length} receipts around a new painting hobby — tutorials, supplies, weekly sessions and journal notes.`,
   },
@@ -68,7 +69,7 @@ const CHAPTER_RULES = [
     id: "new-routine",
     title: "THE NEW ROUTINE",
     match: (r) => (r.tags || []).includes("fitness"),
-    minCount: 6,
+    minCount: CHAPTER_MIN_COUNTS.newRoutine,
     summaryFn: (list) =>
       `${list.length} receipts tracking a new gym habit forming — the same workout playlist opens each session.`,
   },

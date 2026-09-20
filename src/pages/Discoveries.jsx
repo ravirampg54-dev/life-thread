@@ -1,20 +1,17 @@
-import { useState } from "react";
 import DiscoveryCard from "../components/DiscoveryCard";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
-import { useReceiptSelection } from "../hooks/useReceiptSelection";
+import PageHeader from "../components/PageHeader";
+import { useDisclosure, useReceiptSelection } from "../hooks";
 
 export default function Discoveries({ data }) {
   const { discoveries, connections, receiptsById } = data;
-  const [activeDiscovery, setActiveDiscovery] = useState(null);
-  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection();
+  const { value: activeDiscovery, open: showDiscovery, close: closeDiscovery } = useDisclosure();
+  const { openReceipt, drawerProps } = useReceiptSelection(null, connections, receiptsById);
 
   return (
     <div className="p-5 md:p-8 max-w-4xl mx-auto">
-      <header className="mb-6">
-        <h1 className="font-serif text-3xl text-ink">Discoveries</h1>
-        <p className="text-ink/60 text-sm mt-1">Patterns detected directly from the data — never a claim about who you are.</p>
-      </header>
+      <PageHeader title="Discoveries" description="Patterns detected directly from the data — never a claim about who you are." />
 
       {discoveries.length === 0 ? (
         <div className="rounded-lg border border-dashed border-ink/20 bg-receipt p-8 text-center text-sm text-ink/60">
@@ -24,7 +21,7 @@ export default function Discoveries({ data }) {
       ) : (
         <div className="space-y-4 transition-all duration-200">
           {discoveries.map((d) => (
-            <DiscoveryCard key={d.id} discovery={d} onShowEvidence={setActiveDiscovery} />
+            <DiscoveryCard key={d.id} discovery={d} onShowEvidence={showDiscovery} />
           ))}
         </div>
       )}
@@ -33,7 +30,7 @@ export default function Discoveries({ data }) {
         <section className="mt-8 animate-fadein">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-serif text-xl">Evidence: {activeDiscovery.title}</h2>
-            <button onClick={() => setActiveDiscovery(null)} className="font-mono text-xs uppercase text-ink/50 hover:text-ink focus:outline-none">
+            <button onClick={closeDiscovery} className="font-mono text-xs uppercase text-ink/50 hover:text-ink focus:outline-none">
               Close ✕
             </button>
           </div>
@@ -45,13 +42,7 @@ export default function Discoveries({ data }) {
         </section>
       )}
 
-      <ReceiptDrawer
-        receipt={selectedReceipt}
-        onClose={closeReceipt}
-        onSelect={openReceipt}
-        connections={connections}
-        receiptsById={receiptsById}
-      />
+      <ReceiptDrawer {...drawerProps} />
     </div>
   );
 }

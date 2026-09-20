@@ -21,11 +21,13 @@ export default {
         ink: "#f8fafc",
         paper: "#080b14",
         receipt: "#111827",
+        // Accent tokens are tuned so "text-*" variants pass WCAG AA (>= 4.5:1)
+        // on the paper (#080b14) and receipt (#111827) surfaces.
         rust: "#8b5cf6",
         moss: "#22d3ee",
         gold: "#c4b5fd",
-        dusk: "#182235",
-        plum: "#4c1d95",
+        dusk: "#a5b4d9",
+        plum: "#c4b5fd",
       },
       fontFamily: {
         mono: ["'Inter'", "'SFMono-Regular'", "'Menlo'", "monospace"],

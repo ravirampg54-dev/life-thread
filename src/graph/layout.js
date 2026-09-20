@@ -3,6 +3,16 @@
 // simple spring/repulsion forces, seeded deterministically by node index so
 // the layout is stable across renders.
 
+/**
+ * Computes stable positions for graph nodes using deterministic forces.
+ *
+ * @param {{ id: string }[]} nodes
+ * @param {{ sourceId: string, targetId: string }[]} edges
+ * @param {number} width
+ * @param {number} height
+ * @param {number} iterations
+ * @returns {Map<string, { x: number, y: number, vx: number, vy: number }>}
+ */
 export function computeLayout(nodes, edges, width = 800, height = 600, iterations = 220) {
   const positions = new Map();
   const n = nodes.length || 1;

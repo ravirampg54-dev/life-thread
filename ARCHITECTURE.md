@@ -4,15 +4,17 @@ This file explains how the frontend analysis pipeline is organized and how to ex
 
 ## Core flow
 
-Receipts
+`fallbackData.js` (or locally loaded archive data)
   ↓
-Analysis Engine
+`analysis/*.js`: connections, chapters, threads, patterns, and story
   ↓
-Hooks
+`useLifeData`: one memoized derived-data pipeline and lookup indexes
   ↓
-Pages
+pages and shared components
   ↓
-Interactive UI
+interactive UI and browser-local export
+
+Analysis remains a strict data layer: analysis modules do not import pages or components. `useReceiptSelection` owns receipt drawer state and related-receipt lookup; `useDisclosure` owns the repeated open/filter/close evidence sections.
 
 ## Adding a new chapter rule
 
@@ -91,7 +93,7 @@ if (walkReceipts.length >= 3) {
 Example:
 
 ```js
-const WEIGHTS = {
+const CONNECTION_WEIGHTS = {
   temporal: 0.30,
   location: 0.25,
   keyword: 0.20,
@@ -110,15 +112,33 @@ if (a.mood === b.mood) {
 }
 ```
 
+The production formula is `temporal * 0.30 + location * 0.25 + keyword * 0.20 + tag * 0.15 + sameDay * 0.10`. A graph edge is retained only when the final score is at least `0.18`; lower scores are treated as incidental matches. Both the weights and the threshold live in `src/analysis/config.js`.
+
 ## Hook and state pattern
 
-The app centralizes drawer/selection state in `src/hooks/useReceiptSelection.js` so pages do not duplicate receipt-opening logic.
+The app centralizes drawer/selection state in `src/hooks/useReceiptSelection.js` so pages do not duplicate receipt-opening logic. The hook returns a ready-made `drawerProps` object (`{ receipt, onClose, onSelect, connections, receiptsById }`) that every page spreads into `<ReceiptDrawer {...drawerProps} />`, so the wiring lives in exactly one place.
+
+All hooks are re-exported from `src/hooks/index.js`, and pages import `useDisclosure` / `useReceiptSelection` / `useLifeData` from that barrel.
 
 This keeps:
 
 - the drawer behavior consistent
 - the graph, chapters and explorer aligned
 - selection state easy to reason about
+
+## Barrel exports
+
+- `src/analysis/index.js` re-exports the whole analysis engine (`chapters`, `connections`, `patterns`, `story`, `threads`).
+- `src/components/index.js` re-exports the shared presentational components.
+- `src/hooks/index.js` re-exports the shared hooks.
+
+Pages consume these barrels rather than deep-importing individual files.
+
+## Rendering limits
+
+- `src/graph/ConnectionGraph.jsx` caps rendered nodes/edges and memoizes the deterministic layout in `computeLayout`.
+- `src/pages/Explorer.jsx` paginates results (`PAGE_SIZE = 24`) so the grid stays cheap even with a large local archive.
+- The charts (`ActivityChart` / `CategoryChart`) load recharts lazily; every page route in `App.jsx` is `React.lazy` code-split behind `Suspense`.
 
 ## Design principle
 

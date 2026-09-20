@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { categoryMeta } from "../utils/constants";
 
@@ -6,10 +7,52 @@ const BREAKDOWN_LABELS = {
   location: "Location",
   keyword: "Keyword",
   tag: "Tag",
-  sameDay: "Weekday",
+  sameDay: "Same day",
 };
 
+/**
+ * Modal dialog explaining why two receipts are connected: the weighted factor
+ * breakdown (stacked bar + per-factor bars) and the human-readable reasons.
+ * Focus is trapped inside the dialog and restored to the opener on close.
+ *
+ * @param {Connection|null} connection The active edge, or null to render nothing.
+ * @param {Map<string, Receipt>} receiptsById For resolving the two endpoints.
+ * @param {Function} onClose Closes the dialog.
+ * @param {Function} onOpenReceipt Opens one endpoint receipt in the drawer.
+ * @returns {JSX.Element|null}
+ */
 export default function ConnectionExplainer({ connection, receiptsById, onClose, onOpenReceipt }) {
+  const closeRef = useRef(null);
+
+  useEffect(() => {
+    if (!connection) return undefined;
+    const restoreTarget = document.activeElement;
+    closeRef.current?.focus();
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [...document.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")]
+        .filter((element) => element.offsetParent !== null);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (restoreTarget instanceof HTMLElement && document.contains(restoreTarget)) restoreTarget.focus();
+    };
+  }, [connection, onClose]);
+
   if (!connection) return null;
   const source = receiptsById.get(connection.sourceId);
   const target = receiptsById.get(connection.targetId);
@@ -24,7 +67,7 @@ export default function ConnectionExplainer({ connection, receiptsById, onClose,
       <div className="relative w-full max-w-md bg-receipt border-2 border-ink rounded-lg shadow-2xl p-5 animate-fadein">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-mono text-xs uppercase tracking-widest text-ink/60">Why are these connected?</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-rust" aria-label="Close">
+          <button ref={closeRef} onClick={onClose} className="p-1 rounded-full hover:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-rust" aria-label="Close">
             <X size={16} />
           </button>
         </div>
@@ -47,7 +90,11 @@ export default function ConnectionExplainer({ connection, receiptsById, onClose,
             <div className="font-mono text-[11px] text-ink/70">{scorePercent}%</div>
           </div>
           <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-ink/10">
-            <div className="h-full rounded-full bg-rust transition-all" style={{ width: `${scorePercent}%` }} />
+            <div className="flex h-full" aria-label="Weighted factor contributions">
+              {breakdownEntries.map(([key, value]) => (
+                <div key={key} className="h-full bg-rust first:bg-dusk" style={{ width: `${Number(value) * 100}%` }} title={`${BREAKDOWN_LABELS[key] || key}: ${Math.round(Number(value) * 100)}%`} />
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2">

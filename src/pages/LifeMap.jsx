@@ -1,14 +1,23 @@
 import { useMemo, useState } from "react";
 import ReceiptCard from "../components/ReceiptCard";
 import ReceiptDrawer from "../components/ReceiptDrawer";
+import PageHeader from "../components/PageHeader";
+import { useReceiptSelection } from "../hooks";
 
 // The fallback dataset uses place names, not geo-coordinates, so the "map"
 // is a stylized, deterministic visualization (bubble layout sized by visit
 // count) rather than a literal map — per the spec's fallback instruction.
+
+/**
+ * Life Map page: locations as a stylized bubble cloud sized by visit count.
+ *
+ * @param {{ data: object }} props
+ * @returns {JSX.Element}
+ */
 export default function LifeMap({ data }) {
   const { receipts, connections, receiptsById, chapters } = data;
   const [activeLocation, setActiveLocation] = useState(null);
-  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const { openReceipt, drawerProps } = useReceiptSelection(null, connections, receiptsById);
 
   const places = useMemo(() => {
     const map = new Map();
@@ -30,14 +39,12 @@ export default function LifeMap({ data }) {
 
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <header className="mb-6">
-        <h1 className="font-serif text-3xl text-ink">Life Map</h1>
-        <p className="text-ink/60 text-sm mt-1">
-          This dataset records place names rather than coordinates, so locations are shown as a stylized visit map — sized by how often you returned.
-        </p>
-      </header>
+      <PageHeader
+        title="Life Map"
+        description="This dataset records place names rather than coordinates, so locations are shown as a stylized visit map — sized by how often you returned."
+      />
 
-      <div className="flex flex-wrap gap-4 items-end bg-receipt border border-ink/15 rounded-lg p-6 mb-6">
+      <div className="flex flex-wrap justify-center gap-4 items-end bg-receipt border border-ink/15 rounded-lg p-6 mb-6">
         {places.map((p) => {
           const size = 60 + (p.list.length / maxCount) * 90;
           return (
@@ -76,19 +83,13 @@ export default function LifeMap({ data }) {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {activeLocation.list.map((r) => (
-              <ReceiptCard key={r.id} receipt={r} onClick={setSelectedReceipt} compact />
+              <ReceiptCard key={r.id} receipt={r} onClick={openReceipt} compact />
             ))}
           </div>
         </section>
       )}
 
-      <ReceiptDrawer
-        receipt={selectedReceipt}
-        onClose={() => setSelectedReceipt(null)}
-        onSelect={setSelectedReceipt}
-        connections={connections}
-        receiptsById={receiptsById}
-      />
+      <ReceiptDrawer {...drawerProps} />
     </div>
   );
 }

@@ -2,21 +2,20 @@ import { useState } from "react";
 import ConnectionGraph from "../graph/ConnectionGraph";
 import ConnectionExplainer from "../components/ConnectionExplainer";
 import ReceiptDrawer from "../components/ReceiptDrawer";
-import { useReceiptSelection } from "../hooks/useReceiptSelection";
+import PageHeader from "../components/PageHeader";
+import { useReceiptSelection } from "../hooks";
 
 export default function GraphPage({ data }) {
   const { receipts, connections, receiptsById } = data;
   const [activeConnection, setActiveConnection] = useState(null);
-  const { selectedReceipt, openReceipt, closeReceipt } = useReceiptSelection();
+  const { selectedReceipt, openReceipt, drawerProps } = useReceiptSelection(null, connections, receiptsById);
 
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <header className="mb-6">
-        <h1 className="font-serif text-3xl text-ink">Connection Graph</h1>
-        <p className="text-ink/60 text-sm mt-1">
-          Each node is a receipt. Each edge is a data-backed relationship — click one to see why.
-        </p>
-      </header>
+      <PageHeader
+        title="Connection Graph"
+        description="Each node is a receipt. Each edge is a data-backed relationship — click one to see why."
+      />
 
       {connections.length === 0 ? (
         <div className="rounded-lg border border-dashed border-ink/20 bg-receipt p-8 text-center text-sm text-ink/60">
@@ -42,13 +41,7 @@ export default function GraphPage({ data }) {
         }}
       />
 
-      <ReceiptDrawer
-        receipt={selectedReceipt}
-        onClose={closeReceipt}
-        onSelect={openReceipt}
-        connections={connections}
-        receiptsById={receiptsById}
-      />
+      <ReceiptDrawer {...drawerProps} />
     </div>
   );
 }

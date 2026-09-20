@@ -38,16 +38,28 @@ function NavItem({ to, label, icon: Icon, vertical }) {
       to={to}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-xl font-mono text-sm transition-all focus:outline-none focus:ring-2 focus:ring-rust ${
-          vertical ? "px-3 py-2.5" : "flex-col gap-0.5 py-2 px-1 text-[10px]"
+          vertical ? "px-3 py-2.5" : "relative flex-col gap-0.5 py-2.5 px-1.5 text-[10px]"
         } ${
           isActive
-            ? "bg-gradient-to-r from-violet-500/30 to-cyan-400/20 text-white border border-violet-400/30"
+            ? "bg-gradient-to-r from-violet-500/30 to-cyan-400/20 text-white border border-violet-400/50 shadow-[0_0_16px_rgba(139,92,246,0.25)]"
             : "text-slate-300/80 hover:bg-white/5 hover:text-white"
         }`
       }
     >
-      <Icon size={vertical ? 17 : 19} aria-hidden="true" />
-      <span className={vertical ? "" : "leading-none"}>{label}</span>
+      {({ isActive }) => (
+        <>
+          {!vertical && (
+            <span
+              aria-hidden="true"
+              className={`absolute top-0.5 h-0.5 w-6 rounded-full bg-gradient-to-r from-violet-400 to-cyan-300 transition-opacity ${
+                isActive ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          )}
+          <Icon size={vertical ? 17 : 19} aria-hidden="true" />
+          <span className={vertical ? "" : "leading-none"}>{label}</span>
+        </>
+      )}
     </NavLink>
   );
 }

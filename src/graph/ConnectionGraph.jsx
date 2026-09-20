@@ -1,3 +1,5 @@
+// Accessible, bounded SVG graph for exploring evidence-backed receipt links.
+
 import { useMemo, useState } from "react";
 import { computeLayout } from "./layout";
 import { categoryMeta } from "../utils/constants";
@@ -5,6 +7,15 @@ import { categoryMeta } from "../utils/constants";
 const WIDTH = 900;
 const HEIGHT = 620;
 
+/**
+ * Interactive SVG graph of evidence-backed receipt connections.
+ *
+ * @param {{ id: string, title: string, category: string }[]} receipts
+ * @param {Connection[]} connections Graph edges to render.
+ * @param {(connection: Connection) => void} onSelectConnection Opens the explanation dialog.
+ * @param {string} [focusReceiptId] Receipt id to highlight.
+ * @returns {JSX.Element}
+ */
 export default function ConnectionGraph({ receipts, connections, onSelectConnection, focusReceiptId }) {
   const [hoveredEdge, setHoveredEdge] = useState(null);
 
@@ -32,8 +43,10 @@ export default function ConnectionGraph({ receipts, connections, onSelectConnect
           className="w-full min-w-[640px]"
           style={{ height: "auto", maxHeight: "70vh" }}
           role="img"
+          aria-describedby="connection-graph-summary"
           aria-label="Connection graph of receipts. Use the list below for a keyboard-accessible alternative."
         >
+          <title>Receipt connection graph</title>
           <g>
             {edges.map((e, i) => {
               const s = positions.get(e.sourceId);
@@ -48,7 +61,7 @@ export default function ConnectionGraph({ receipts, connections, onSelectConnect
                   y1={s.y}
                   x2={t.x}
                   y2={t.y}
-                  stroke={isHovered || involvesFocus ? "#c1502e" : "rgba(11,10,8,0.15)"}
+                  stroke={isHovered || involvesFocus ? "#8b5cf6" : "rgba(203,213,225,0.45)"}
                   strokeWidth={isHovered || involvesFocus ? 2.5 : Math.max(0.5, e.score * 2)}
                   className="cursor-pointer transition-all"
                   onMouseEnter={() => setHoveredEdge(i)}
@@ -68,7 +81,7 @@ export default function ConnectionGraph({ receipts, connections, onSelectConnect
                   <circle
                     r={isFocus ? 10 : 6}
                     fill={meta.color}
-                    stroke={isFocus ? "#0b0a08" : "none"}
+                    stroke={isFocus ? "#c4b5fd" : "none"}
                     strokeWidth={2}
                     className="cursor-pointer"
                   >
@@ -80,6 +93,7 @@ export default function ConnectionGraph({ receipts, connections, onSelectConnect
           </g>
         </svg>
       </div>
+      <p id="connection-graph-summary" className="sr-only">This graph shows {nodes.length} receipt nodes and {edges.length} evidence-backed connections. Each connection combines time, location, keyword, tag, and same-day signals.</p>
 
       <details className="bg-receipt border border-ink/15 rounded-lg p-3">
         <summary className="font-mono text-xs uppercase tracking-wide text-ink/60 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rust rounded">

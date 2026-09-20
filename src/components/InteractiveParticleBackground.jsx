@@ -1,8 +1,6 @@
 import { useEffect, useRef } from "react";
 
-function getParticleCount(width, height) {
-  const area = width * height;
-
+function getParticleCount(width, _height) {
   if (width >= 1400) return 140;
   if (width >= 1024) return 110;
   if (width >= 768) return 80;

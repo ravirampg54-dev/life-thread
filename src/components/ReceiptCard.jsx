@@ -1,6 +1,15 @@
 import { categoryMeta } from "../utils/constants";
 import { formatDate, formatTime } from "../utils/dateUtils";
 
+/**
+ * Clickable receipt card used across every list/grid view.
+ *
+ * @param {Receipt} receipt The receipt to render.
+ * @param {Function} [onClick] Called with the receipt when the card is pressed.
+ * @param {number|null} [connectionCount] Optional "N links" badge value.
+ * @param {boolean} [compact] Smaller padding for dense grids.
+ * @returns {JSX.Element}
+ */
 export default function ReceiptCard({ receipt, onClick, connectionCount = null, compact = false }) {
   const meta = categoryMeta(receipt.category);
   return (

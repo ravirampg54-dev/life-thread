@@ -5,14 +5,47 @@ import ReceiptCard from "./ReceiptCard";
 import { formatDate, formatTime } from "../utils/dateUtils";
 import { getConnectedReceipts } from "../analysis/connections";
 
+/**
+ * Slide-over detail panel for a single receipt, with focus trapping and
+ * focus restoration. Shows metadata, tags, top reason, and related moments.
+ *
+ * @param {Receipt|null} receipt The receipt to display, or null to render nothing.
+ * @param {Function} onClose Closes the drawer.
+ * @param {Function} onSelect Opens another receipt from the related list.
+ * @param {Connection[]} connections All graph edges used to find related receipts.
+ * @param {Map<string, Receipt>} receiptsById For looking up connected receipts.
+ * @returns {JSX.Element|null}
+ */
 export default function ReceiptDrawer({ receipt, onClose, onSelect, connections, receiptsById }) {
   const closeRef = useRef(null);
 
   useEffect(() => {
-    if (receipt) closeRef.current?.focus();
-    const onKey = (e) => e.key === "Escape" && onClose();
+    if (!receipt) return undefined;
+    const restoreTarget = document.activeElement;
+    closeRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = [...document.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")]
+        .filter((element) => element.offsetParent !== null);
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (restoreTarget instanceof HTMLElement && document.contains(restoreTarget)) restoreTarget.focus();
+    };
   }, [receipt, onClose]);
 
   if (!receipt) return null;
